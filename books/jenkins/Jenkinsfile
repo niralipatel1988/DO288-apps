@@ -120,10 +120,10 @@ pipeline {
                    '''
 
                 echo '### Creating a new app in Staging ###'
-                SH '''  
-		OC PROJECT ${stage_project}  
-		OC NEW-APP --NAME BOOKS -I BOOKS:STAGE  
-		OC EXPOSE SVC/${app_name}  
+                sh '''  
+		oc project ${STAGE_PROJECT}  
+		oc new-app --name books -i books:stage  
+		oc expose svc/${APP_NAME}
 		'''
             }
         }
@@ -136,9 +136,9 @@ pipeline {
                     routeHost = readFile('routehost').trim()
 
                     openshift.withCluster() {
-                        OPENSHIFT.WITHpROJECT( "${stage_project}" ) {
-			DEF DEPLOYMENT = OPENSHIFT.SELECTOR("DC", "${app_name}").ROLLOUT()
-			OPENSHIFT.SELECTOR("DC", "${APP_NAME}").related('pods').untilEach(1) {
+                       openshift.withProject( "${STAGE_PROJECT}" ) {
+			def deployment = openshift.selector("dc", "${APP_NAME}").rollout()
+			openshift.selector("dc", "${APP_NAME}").related('pods').untilEach(1) {
 			return (it.object().status.phase == "Runing")
 			}
 		    }
